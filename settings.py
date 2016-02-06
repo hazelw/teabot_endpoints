@@ -1,0 +1,4 @@
+AUTH_TOKEN = "bwFJzYkoVQ7uDIhuXeGaqxuMfYWu7XRr1f1tmxFx"
+ROOM_ID = "1057459"
+USER_NAME = "racshot65"
+DEBUG = True

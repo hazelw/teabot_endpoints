@@ -72,11 +72,16 @@ def getState():
     return jsonify(response)
 
 
-@app.route("/webhook")
+@app.route("/teabotWebhook", methods=["POST"])
 def webhook():
-    print "webhook yo", vars(request)
-    return Response()
+    # Get the last state from the database that was GOOD_TEAPOT and return the
+    # number of cups recorded then
+    latest_state = \
+        State.select().where(State.state == "GOOD_TEAPOT").order_by(
+            -State.timestamp
+        )
+    return jsonify({'text': 'There are %s cups left' % latest_state.cups})
 
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG)
+    app.run(host="127.0.0.1", debug=True, port=8000)

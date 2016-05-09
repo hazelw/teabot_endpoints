@@ -59,6 +59,20 @@ def storeState():
     return Response()
 
 
+def _human_teapot_state(state):
+    base_text = 'There %s %s left' % \
+        (_are_or_is(state.num_of_cups), _cup_puraliser(state.num_of_cups))
+    if state.state == "COLD_TEAPOT":
+        base_text += " but the teas cold :("
+    return base_text
+
+
+def _are_or_is(number_of_cups):
+    if number_of_cups == 1:
+        return "is"
+    return "are"
+
+
 @app.route("/teabotWebhook", methods=["POST"])
 def webhook():
     """Listens for POSTs from Slack, which are requests for the current
@@ -74,8 +88,7 @@ def webhook():
     if latest_state:
         return jsonify(
             {
-                'text': 'There are %s left' % _cup_puraliser(
-                    latest_state.num_of_cups)
+                'text': _human_teapot_state(latest_state)
             }
         )
     else:

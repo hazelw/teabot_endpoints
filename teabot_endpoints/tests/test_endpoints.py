@@ -1,7 +1,7 @@
 from unittest import TestCase
 from playhouse.test_utils import test_database
 from teabot_endpoints.models import State
-from teabot_endpoints.endpoints import app
+from teabot_endpoints.endpoints import app, _cup_puraliser
 from peewee import SqliteDatabase
 from mock import patch
 import json
@@ -33,7 +33,7 @@ class TestEndpoints(TestCase):
         )
         self.assertEqual(result.status_code, 200)
         mock_slack.post_message_to_room.assert_called_once_with(
-            "Teapot is ready with 3 cups"
+            "@here The Teapot :teapot: is ready with 3 cups"
         )
 
     def test_tea_webhook_no_data(self):
@@ -72,3 +72,11 @@ class TestEndpoints(TestCase):
         self.assertEqual(result.status_code, 200)
         database_entries = [d for d in State.select()]
         self.assertEqual(len(database_entries), 1)
+
+    def test_pluraliser_1_cup(self):
+        result = _cup_puraliser(1)
+        self.assertEqual(result, "1 cup")
+
+    def test_pluraliser_more_than_1_cup(self):
+        result = _cup_puraliser(10)
+        self.assertEqual(result, "10 cups")

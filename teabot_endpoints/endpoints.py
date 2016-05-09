@@ -7,6 +7,19 @@ app = Flask(__name__)
 slack_communicator_wrapper = SlackCommunicator()
 
 
+def _cup_puraliser(number_of_cups):
+    """Correctly puralises the number of cups remaining
+
+    Args:
+        - number_of_cups (int) - Number of cups left in the teapot
+    Returns
+        - String containing <number of cups> cup / cups
+    """
+    if number_of_cups == 1:
+        return "1 cup"
+    return "%s cups" % number_of_cups
+
+
 @app.route("/teaReady", methods=["POST"])
 def teaReady():
     """POST'ing to this endpoint triggers a message to be sent to Slack
@@ -20,7 +33,9 @@ def teaReady():
     data = json.loads(request.data)
     number_of_cups = data["num_of_cups"]
     slack_communicator_wrapper.post_message_to_room(
-        "Teapot is ready with %s cups" % number_of_cups)
+        "@here The Teapot :teapot: is ready with %s" % _cup_puraliser(
+            number_of_cups)
+    )
     return Response()
 
 
@@ -58,7 +73,10 @@ def webhook():
     latest_state = State.get_newest_state()
     if latest_state:
         return jsonify(
-            {'text': 'There are %s cups left' % latest_state.num_of_cups}
+            {
+                'text': 'There are %s left' % _cup_puraliser(
+                    latest_state.num_of_cups)
+            }
         )
     else:
         return jsonify({'text': 'Theres no teapot data :('})

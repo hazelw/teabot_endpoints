@@ -1,2 +1,2 @@
 #!/bin/bash
-exec gunicorn --log-level debug -w 4 -b 127.0.0.1:8000 endpoints:app
+exec gunicorn --log-level debug -w 4 -b 127.0.0.1:8000 teabot_endpoints.endpoints:app

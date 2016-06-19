@@ -30,8 +30,8 @@ def teaReady():
     Returns
         - 200
     """
-    data = json.loads(request.data)
-    number_of_cups = data["num_of_cups"]
+    latest_state = State.get_newest_state()
+    number_of_cups = latest_state.num_of_cups
     slack_communicator_wrapper.post_message_to_room(
         "<!channel> The Teapot :teapot: is ready with %s" % _cup_puraliser(
             number_of_cups)

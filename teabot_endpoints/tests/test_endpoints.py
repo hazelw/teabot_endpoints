@@ -4,7 +4,7 @@ from teabot_endpoints.models import State
 from teabot_endpoints.endpoints import app, _cup_puraliser, \
     _human_teapot_state, _are_or_is
 from peewee import SqliteDatabase
-from mock import patch
+from mock import patch, Mock
 import json
 from datetime import datetime, timedelta
 
@@ -26,9 +26,13 @@ class TestEndpoints(TestCase):
         self.assertEqual(result.status_code, 418)
 
     @patch(
+        "teabot_endpoints.endpoints.State.get_newest_state",
+        auto_spec=True)
+    @patch(
         "teabot_endpoints.endpoints.slack_communicator_wrapper",
         auto_spec=True)
-    def test_tea_ready(self, mock_slack):
+    def test_tea_ready(self, mock_slack, mock_state):
+        mock_state.return_value = Mock(spec=State, num_of_cups=3)
         result = self.app.post(
             "/teaReady", data=json.dumps({'num_of_cups': 3})
         )

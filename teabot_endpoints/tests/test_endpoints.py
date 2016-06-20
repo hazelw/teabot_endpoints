@@ -38,7 +38,7 @@ class TestEndpoints(TestCase):
         )
         self.assertEqual(result.status_code, 200)
         mock_slack.post_message_to_room.assert_called_once_with(
-            "<!channel> The Teapot :teapot: is ready with 3 cups"
+            "@here The Teapot :teapot: is ready with 3 cups"
         )
 
     def test_tea_webhook_no_data(self):

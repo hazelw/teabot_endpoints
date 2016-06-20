@@ -33,7 +33,7 @@ def teaReady():
     latest_state = State.get_newest_state()
     number_of_cups = latest_state.num_of_cups
     slack_communicator_wrapper.post_message_to_room(
-        "@here The Teapot :teapot: is ready with %s" % _cup_puraliser(
+        "<!channel> The Teapot :teapot: is ready with %s" % _cup_puraliser(
             number_of_cups)
     )
     return Response()

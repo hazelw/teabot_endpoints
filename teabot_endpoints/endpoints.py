@@ -101,5 +101,18 @@ def imATeapot():
     return Response(), 418
 
 
+@app.route("/numberOfNewTeapots")
+def numberOfNewTeapots():
+    """Returns a JSON blob containing the total number of teapots made
+
+    Args:
+        - None
+    Returns
+        - {numberOfTeapots: X}
+    """
+    number_of_teapots = State.get_number_of_new_teapots()
+    return jsonify({"numberOfTeapots": number_of_teapots})
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", debug=True, port=8000)

@@ -34,6 +34,19 @@ class State(BaseModel):
         except IndexError:
             return None
 
+    @classmethod
+    def get_number_of_new_teapots(cls):
+        """Returns the number of new teapots made
+
+        Args:
+            - None
+        Returns:
+            - int - number of new teapots
+        """
+        return len([s for s in State.select().where(
+            State.state == 'FULL_TEAPOT')]
+        )
+
 
 if __name__ == "__main__":
     try:

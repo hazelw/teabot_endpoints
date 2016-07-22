@@ -31,3 +31,22 @@ class TestModels(TestCase):
         result = State.get_newest_state()
         self.assertEqual(result.state, "TEAPOT_FULL")
         self.assertEqual(result.num_of_cups, 3)
+
+    def test_get_number_of_new_teapots(self):
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime.now().isoformat(),
+            num_of_cups=3
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime.now() - timedelta(weeks=1),
+            num_of_cups=0
+        )
+        State.create(
+            state="EMPTY_TEAPOT",
+            timestamp=datetime.now() - timedelta(weeks=1),
+            num_of_cups=0
+        )
+        result = State.get_number_of_new_teapots()
+        self.assertEqual(result, 2)

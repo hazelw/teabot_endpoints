@@ -54,7 +54,9 @@ def storeState():
     State.create(
         state=data["state"],
         timestamp=data["timestamp"],
-        num_of_cups=data["num_of_cups"]
+        num_of_cups=data["num_of_cups"],
+        weight=data.get("weight", -1),
+        temperature=data.get("temperature", 1)
     )
     return Response()
 

@@ -18,6 +18,8 @@ class State(BaseModel):
     state = CharField()
     timestamp = DateTimeField(default=datetime.now, index=True)
     num_of_cups = IntegerField()
+    weight = IntegerField(null=True)
+    temperature = IntegerField(null=True)
 
     @classmethod
     def get_newest_state(cls):

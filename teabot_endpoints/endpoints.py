@@ -96,7 +96,7 @@ def _are_or_is(number_of_cups):
     return "are"
 
 
-@app.route("/teabotWebhook", methods=["POST"])
+@app.route("/teabotWebhook", methods=["POST", "GET"])
 def webhook():
     """Listens for POSTs from Slack, which are requests for the current
     state of the teapot.

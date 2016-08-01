@@ -50,3 +50,25 @@ class TestModels(TestCase):
         )
         result = State.get_number_of_new_teapots()
         self.assertEqual(result, 2)
+
+    def test_latest_full_teapot(self):
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2015, 1, 1).isoformat(),
+            num_of_cups=3
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1).isoformat(),
+            num_of_cups=4
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2017, 1, 1).isoformat(),
+            num_of_cups=5
+        )
+        result = State.get_latest_full_teapot()
+        print result.state
+        print result.num_of_cups
+        print result.timestamp
+        self.assertEqual(result.num_of_cups, 5)

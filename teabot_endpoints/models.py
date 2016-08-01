@@ -49,6 +49,18 @@ class State(BaseModel):
             State.state == 'FULL_TEAPOT')]
         )
 
+    @classmethod
+    def get_latest_full_teapot(cls):
+        """Returns the latest FULL_TEAPOT
+
+        Args:
+            - None
+        Returns:
+            - int - age of teapot in minutes
+        """
+        return State.select().where(
+            State.state == 'FULL_TEAPOT').order_by(-State.timestamp)[0]
+
 
 if __name__ == "__main__":
     try:

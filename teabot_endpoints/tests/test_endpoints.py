@@ -145,3 +145,18 @@ class TestEndpoints(TestCase):
     def test_are_or_is_is(self):
         result = _are_or_is(1)
         self.assertEqual(result, "is")
+
+    @patch("teabot_endpoints.endpoints._get_current_time", autospec=True)
+    def test_teapot_age(self, mock_time):
+        mock_time.return_value = datetime(2016, 1, 1, 12, 5, 0)
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1, 12, 0, 0),
+            num_of_cups=2
+        )
+        result = self.app.get(
+            "/teapotAge",
+        )
+        self.assertEqual(result.status_code, 200)
+        data = json.loads(result.data)
+        self.assertEqual(data["teapotAge"], 5)

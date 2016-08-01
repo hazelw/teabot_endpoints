@@ -3,3 +3,4 @@
 .tox
 supervise/
 *.swp
+.DS_Store

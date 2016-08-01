@@ -5,6 +5,7 @@ import os
 from slack_communicator import SlackCommunicator
 from models import State
 import json
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -136,6 +137,25 @@ def numberOfNewTeapots():
     number_of_teapots = State.get_number_of_new_teapots()
     return jsonify({"numberOfTeapots": number_of_teapots})
 
+
+def _get_current_time():
+    return datetime.now()
+
+
+@app.route("/teapotAge")
+def teapotAge():
+    """Returns a JSON blob containing the age of the teapot in minutes
+
+    Args:
+        - None
+    Returns
+        - {teapotAge: X}
+    """
+    latest_pot = State.get_latest_full_teapot()
+    teapot_age = _get_current_time() - latest_pot.timestamp
+    teapot_age = teapot_age.total_seconds() / 60
+
+    return jsonify({"teapotAge": teapot_age})
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", debug=True, port=8000)

@@ -1,6 +1,6 @@
 from unittest import TestCase
 from playhouse.test_utils import test_database
-from teabot_endpoints.models import State
+from teabot_endpoints.models import State, PotMaker
 from teabot_endpoints.endpoints import app, _cup_puraliser, \
     _human_teapot_state, _are_or_is
 from peewee import SqliteDatabase
@@ -17,7 +17,7 @@ class TestEndpoints(TestCase):
         self.app = app.test_client()
 
     def run(self, result=None):
-        with test_database(test_db, [State]):
+        with test_database(test_db, [State, PotMaker]):
             super(TestEndpoints, self).run(result)
 
     def test_im_a_teapot(self):
@@ -166,3 +166,82 @@ class TestEndpoints(TestCase):
         self.assertEqual(result.status_code, 200)
         data = json.loads(result.data)
         self.assertEqual(data["teapotAge"], 5)
+
+    def test_pot_makers(self):
+        PotMaker.create(
+            name='aaron',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2
+        )
+        PotMaker.create(
+            name='bob',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2
+        )
+        result = self.app.get('/potMakers')
+        self.assertEqual(result.status_code, 200)
+        data = json.loads(result.data)
+        self.assertEqual(len(data['potMakers']), 2)
+
+    def test_claim_pot_already_claimed(self):
+        maker = PotMaker.create(
+            name='bob',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1, 12, 0, 0),
+            num_of_cups=2,
+            claimed_by=maker
+        )
+        result = self.app.post('/claimPot')
+        self.assertEqual(result.status_code, 200)
+        data = json.loads(result.data)
+        self.assertEqual(data['submitMessage'], 'Pots already been claimed')
+
+    def test_claim_pot_unclaimed(self):
+        maker = PotMaker.create(
+            name='bob',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1, 12, 0, 0),
+            num_of_cups=5,
+            weight=10
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2017, 1, 1, 12, 0, 0),
+            num_of_cups=2,
+            weight=5
+        )
+        result = self.app.post(
+            '/claimPot',
+            data=json.dumps({
+                'potMaker': 'bob',
+            })
+        )
+        self.assertEqual(result.status_code, 200)
+        data = json.loads(result.data)
+        self.assertEqual(data['submitMessage'], 'Pots claimed, thanks!')
+
+        updated_pot_maker = PotMaker.get_single_pot_maker(
+            'bob'
+        )
+        self.assertEqual(updated_pot_maker.number_of_pots_made, 2)
+        self.assertEqual(updated_pot_maker.total_weight_made, 17)
+        self.assertEqual(updated_pot_maker.number_of_cups_made, 7)
+
+        updated_state = State.get_latest_full_teapot()
+        self.assertEqual(updated_state.claimed_by, maker)

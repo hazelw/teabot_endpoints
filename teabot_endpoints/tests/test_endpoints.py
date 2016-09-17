@@ -82,17 +82,23 @@ class TestEndpoints(TestCase):
     def test_store_state(self):
         database_entries = [d for d in State.select()]
         self.assertEqual(len(database_entries), 0)
+        now = datetime.now()
         result = self.app.post(
             "/storeState",
             data=json.dumps({
                 'num_of_cups': 3,
-                'timestamp': datetime.now().isoformat(),
+                'timestamp': now.isoformat(),
                 'state': 'TEAPOT FULL'
             })
         )
         self.assertEqual(result.status_code, 200)
         database_entries = [d for d in State.select()]
         self.assertEqual(len(database_entries), 1)
+        db_entry = database_entries[0]
+        self.assertEqual(type(db_entry.timestamp), datetime)
+        self.assertEqual(db_entry.num_of_cups, 3)
+        self.assertEqual(db_entry.timestamp, now)
+        self.assertEqual(db_entry.state, 'TEAPOT FULL')
 
     def test_pluraliser_1_cup(self):
         result = _cup_puraliser(1)

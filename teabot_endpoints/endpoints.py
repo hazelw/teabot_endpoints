@@ -75,7 +75,7 @@ def storeState():
     data = json.loads(request.data)
     State.create(
         state=data["state"],
-        timestamp=data["timestamp"],
+        timestamp=datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%f"),
         num_of_cups=data["num_of_cups"],
         weight=data.get("weight", -1),
         temperature=data.get("temperature", 1)
@@ -152,7 +152,7 @@ def teapotAge():
         - {teapotAge: X}
     """
     latest_pot = State.get_latest_full_teapot()
-    teapot_age = _get_current_time() - datetime.strptime(latest_pot.timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+    teapot_age = _get_current_time() - latest_pot.timestamp
     teapot_age = teapot_age.total_seconds() / 60
 
     return jsonify({"teapotAge": teapot_age})

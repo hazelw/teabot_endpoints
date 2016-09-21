@@ -3,7 +3,7 @@ import rollbar
 import rollbar.contrib.flask
 import os
 from slack_communicator import SlackCommunicator
-from models import State
+from models import State, PotMaker
 import json
 from datetime import datetime
 
@@ -156,6 +156,57 @@ def teapotAge():
     teapot_age = teapot_age.total_seconds() / 60
 
     return jsonify({"teapotAge": teapot_age})
+
+
+@app.route("/potMakers")
+def potMakers():
+    """Returns a JSON blob containing details on potmakers
+
+    Args:
+        - None
+    Returns
+        - [{
+            name: string,
+            numberOfPotsMade: int,
+            totalWeightMade: int,
+            largestSinglePot: int
+        }]
+    """
+    all_pot_makers = PotMaker.get_all()
+    results = []
+    for pot_maker in all_pot_makers:
+        results.append({
+            'name': pot_maker.name,
+            'numberOfPotsMade': pot_maker.number_of_pots_made,
+            'totalWeightMade': pot_maker.total_weight_made,
+            'largestSinglePot': pot_maker.largest_single_pot
+        })
+
+    return jsonify({"potMakers": results})
+
+
+@app.route("/claimPot", methods=['POST'])
+def claimPot():
+    """Lets a user claim to have made a teapot
+
+    Args:
+        - None
+    Returns
+        - {'submitMessage': 'Error / Success Message'}
+    """
+    latest_full_pot = State.get_latest_full_teapot()
+    if latest_full_pot.claimed_by:
+        return jsonify({'submitMessage': 'Pots already been claimed'})
+    maker = json.loads(request.data)['potMaker']
+    maker = PotMaker.get_single_pot_maker(maker)
+    maker.number_of_pots_made += 1
+    maker.total_weight_made += latest_full_pot.weight
+    maker.number_of_cups_made += latest_full_pot.num_of_cups
+    maker.save()
+    latest_full_pot.claimed_by = maker
+    latest_full_pot.save()
+    return jsonify({'submitMessage': 'Pots claimed, thanks!'})
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", debug=True, port=8000)

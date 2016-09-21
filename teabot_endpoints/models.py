@@ -1,5 +1,5 @@
 from peewee import Model, DateTimeField, OperationalError, CharField, \
-    IntegerField
+    IntegerField, ForeignKeyField
 from playhouse.sqlite_ext import SqliteExtDatabase
 from datetime import datetime
 
@@ -11,6 +11,41 @@ class BaseModel(Model):
         database = db
 
 
+class PotMaker(BaseModel):
+    """Table that records people who can claim to have made a teapot and stats
+    about their teapot making
+    """
+    name = CharField()
+    number_of_pots_made = IntegerField()
+    total_weight_made = IntegerField()
+    number_of_cups_made = IntegerField()
+    largest_single_pot = IntegerField()
+
+    @classmethod
+    def get_all(cls):
+        """Returns all the pot makers
+
+        Args:
+            - None
+        Returns:
+            - list of PotMakers objects
+        """
+        return [pot_maker for pot_maker in PotMaker.select()]
+
+    @classmethod
+    def get_single_pot_maker(cls, name):
+        """Returns the pot maker with the given name
+
+        Args:
+            - name (String) - Name of pot maker you want to retrieve
+        Returns:
+            - list of PotMakers objects
+        """
+        return PotMaker.select().where(
+            PotMaker.name == name
+        )[0]
+
+
 class State(BaseModel):
     """Table that records the state of the teapot over time, commonly queried
     for the latest entry to tell people about the state of the teapot
@@ -20,6 +55,7 @@ class State(BaseModel):
     num_of_cups = IntegerField()
     weight = IntegerField(null=True)
     temperature = IntegerField(null=True)
+    claimed_by = ForeignKeyField(PotMaker, null=True)
 
     @classmethod
     def get_newest_state(cls):
@@ -65,5 +101,9 @@ class State(BaseModel):
 if __name__ == "__main__":
     try:
         State.create_table()
+    except OperationalError:
+        print "The table already exists"
+    try:
+        PotMaker.create_table()
     except OperationalError:
         print "The table already exists"

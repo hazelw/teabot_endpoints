@@ -242,6 +242,7 @@ class TestEndpoints(TestCase):
         self.assertEqual(updated_pot_maker.number_of_pots_made, 2)
         self.assertEqual(updated_pot_maker.total_weight_made, 17)
         self.assertEqual(updated_pot_maker.number_of_cups_made, 7)
+        self.assertEqual(updated_pot_maker.largest_single_pot, 5)
 
         updated_state = State.get_latest_full_teapot()
         self.assertEqual(updated_state.claimed_by, maker)

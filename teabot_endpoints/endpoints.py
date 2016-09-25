@@ -204,6 +204,8 @@ def claimPot():
     maker.number_of_pots_made += 1
     maker.total_weight_made += latest_full_pot.weight
     maker.number_of_cups_made += latest_full_pot.num_of_cups
+    if maker.largest_single_pot < latest_full_pot.weight:
+        maker.largest_single_pot = latest_full_pot.weight
     maker.save()
     latest_full_pot.claimed_by = maker
     latest_full_pot.save()

@@ -170,6 +170,7 @@ def potMakers():
             numberOfPotsMade: int,
             totalWeightMade: int,
             largestSinglePot: int
+            numberOfCupsMade: int
         }]
     """
     all_pot_makers = PotMaker.get_all()
@@ -179,7 +180,8 @@ def potMakers():
             'name': pot_maker.name,
             'numberOfPotsMade': pot_maker.number_of_pots_made,
             'totalWeightMade': pot_maker.total_weight_made,
-            'largestSinglePot': pot_maker.largest_single_pot
+            'largestSinglePot': pot_maker.largest_single_pot,
+            'numberOfCupsMade': pot_maker.number_of_cups_made
         })
 
     return jsonify({"potMakers": results})

@@ -28,9 +28,9 @@ class TestEndpoints(TestCase):
     @patch(
         "teabot_endpoints.endpoints.slack_communicator_wrapper",
         auto_spec=True)
-    def test_tea_ready(self, mock_slack):
+    def test_tea_ready_no_claim(self, mock_slack):
         State.create(
-            state="TEAPOT FULL",
+            state="FULL_TEAPOT",
             timestamp=datetime.now().isoformat(),
             num_of_cups=3
         )
@@ -38,6 +38,29 @@ class TestEndpoints(TestCase):
         self.assertEqual(result.status_code, 200)
         mock_slack.post_message_to_room.assert_called_once_with(
             "@here The Teapot :teapot: is ready with 3 cups"
+        )
+
+    @patch(
+        "teabot_endpoints.endpoints.slack_communicator_wrapper",
+        auto_spec=True)
+    def test_tea_ready_claimed(self, mock_slack):
+        maker = PotMaker.create(
+            name='bob',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2
+        )
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime.now().isoformat(),
+            num_of_cups=3,
+            claimed_by=maker
+        )
+        result = self.app.post("/teaReady")
+        self.assertEqual(result.status_code, 200)
+        mock_slack.post_message_to_room.assert_called_once_with(
+            "@here The Teapot :teapot: is ready with 3 cups, thanks to bob"
         )
 
     def test_tea_webhook_no_data(self):
@@ -204,7 +227,7 @@ class TestEndpoints(TestCase):
         result = self.app.post('/claimPot')
         self.assertEqual(result.status_code, 200)
         data = json.loads(result.data)
-        self.assertEqual(data['submitMessage'], 'Pots already been claimed')
+        self.assertEqual(data['submitMessage'], 'Pot has already been claimed')
 
     def test_claim_pot_unclaimed(self):
         maker = PotMaker.create(
@@ -234,7 +257,7 @@ class TestEndpoints(TestCase):
         )
         self.assertEqual(result.status_code, 200)
         data = json.loads(result.data)
-        self.assertEqual(data['submitMessage'], 'Pots claimed, thanks!')
+        self.assertEqual(data['submitMessage'], 'Pot claimed, thanks, bob')
 
         updated_pot_maker = PotMaker.get_single_pot_maker(
             'bob'
@@ -246,3 +269,16 @@ class TestEndpoints(TestCase):
 
         updated_state = State.get_latest_full_teapot()
         self.assertEqual(updated_state.claimed_by, maker)
+
+    def test_claim_pot_no_pot_maker(self):
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1, 12, 0, 0),
+            num_of_cups=2,
+            claimed_by=None
+        )
+        result = self.app.post('/claimPot', data=json.dumps({}))
+        self.assertEqual(result.status_code, 200)
+        data = json.loads(result.data)
+        self.assertEqual(
+            data['submitMessage'], 'You need to select a pot maker')

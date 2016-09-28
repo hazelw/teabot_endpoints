@@ -53,11 +53,14 @@ def teaReady():
         - 200
     """
     latest_state = State.get_newest_state()
+    last_full_pot = State.get_latest_full_teapot()
     number_of_cups = latest_state.num_of_cups
-    slack_communicator_wrapper.post_message_to_room(
-        "@here The Teapot :teapot: is ready with %s" % _cup_puraliser(
-            number_of_cups)
+    message = "@here The Teapot :teapot: is ready with %s" % (
+        _cup_puraliser(number_of_cups)
     )
+    if last_full_pot.claimed_by:
+        message += ", thanks to %s" % last_full_pot.claimed_by.name
+    slack_communicator_wrapper.post_message_to_room(message)
     return Response()
 
 
@@ -198,8 +201,12 @@ def claimPot():
     """
     latest_full_pot = State.get_latest_full_teapot()
     if latest_full_pot.claimed_by:
-        return jsonify({'submitMessage': 'Pots already been claimed'})
-    maker = json.loads(request.data)['potMaker']
+        return jsonify({'submitMessage': 'Pot has already been claimed'})
+    try:
+        maker = json.loads(request.data)['potMaker']
+    except KeyError:
+        return jsonify({'submitMessage': 'You need to select a pot maker'})
+
     maker = PotMaker.get_single_pot_maker(maker)
     maker.number_of_pots_made += 1
     maker.total_weight_made += latest_full_pot.weight
@@ -209,7 +216,7 @@ def claimPot():
     maker.save()
     latest_full_pot.claimed_by = maker
     latest_full_pot.save()
-    return jsonify({'submitMessage': 'Pots claimed, thanks!'})
+    return jsonify({'submitMessage': 'Pot claimed, thanks, %s' % maker.name})
 
 
 if __name__ == "__main__":

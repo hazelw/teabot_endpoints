@@ -55,7 +55,7 @@ def teaReady():
     latest_state = State.get_newest_state()
     last_full_pot = State.get_latest_full_teapot()
     number_of_cups = latest_state.num_of_cups
-    message = "@here The Teapot :teapot: is ready with %s" % (
+    message = "The Teapot :teapot: is ready with %s" % (
         _cup_puraliser(number_of_cups)
     )
     if last_full_pot.claimed_by:

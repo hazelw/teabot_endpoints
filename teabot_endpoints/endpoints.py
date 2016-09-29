@@ -55,7 +55,7 @@ def teaReady():
     latest_state = State.get_newest_state()
     last_full_pot = State.get_latest_full_teapot()
     number_of_cups = latest_state.num_of_cups
-    message = "@here The Teapot :teapot: is ready with %s" % (
+    message = "The Teapot :teapot: is ready with %s" % (
         _cup_puraliser(number_of_cups)
     )
     if last_full_pot.claimed_by:
@@ -206,6 +206,12 @@ def claimPot():
         maker = json.loads(request.data)['potMaker']
     except KeyError:
         return jsonify({'submitMessage': 'You need to select a pot maker'})
+
+    # Hazel claims false teapots, teabot don't like it.
+    if maker == "Hazel":
+        message = 'This has gone on oolong enough, Hazel.'
+        slack_communicator_wrapper.post_message_to_room(message)
+        return Response()
 
     maker = PotMaker.get_single_pot_maker(maker)
     maker.number_of_pots_made += 1

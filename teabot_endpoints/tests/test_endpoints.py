@@ -37,7 +37,7 @@ class TestEndpoints(TestCase):
         result = self.app.post("/teaReady")
         self.assertEqual(result.status_code, 200)
         mock_slack.post_message_to_room.assert_called_once_with(
-            "@here The Teapot :teapot: is ready with 3 cups"
+            "The Teapot :teapot: is ready with 3 cups"
         )
 
     @patch(
@@ -60,7 +60,7 @@ class TestEndpoints(TestCase):
         result = self.app.post("/teaReady")
         self.assertEqual(result.status_code, 200)
         mock_slack.post_message_to_room.assert_called_once_with(
-            "@here The Teapot :teapot: is ready with 3 cups, thanks to bob"
+            "The Teapot :teapot: is ready with 3 cups, thanks to bob"
         )
 
     def test_tea_webhook_no_data(self):
@@ -270,12 +270,29 @@ class TestEndpoints(TestCase):
         updated_state = State.get_latest_full_teapot()
         self.assertEqual(updated_state.claimed_by, maker)
 
-    def test_claim_pot_no_pot_maker(self):
+    @patch(
+        "teabot_endpoints.endpoints.slack_communicator_wrapper",
+        auto_spec=True)
+    def test_claim_pot_unclaimed_hazel(self, mock_slack):
         State.create(
             state="FULL_TEAPOT",
             timestamp=datetime(2016, 1, 1, 12, 0, 0),
             num_of_cups=2,
             claimed_by=None
+        )
+
+        self.app.post('/claimPot', data=json.dumps(
+            {'potMaker': 'Hazel'}))
+
+        mock_slack.post_message_to_room.assert_called_once_with(
+            'This has gone on oolong enough, Hazel.')
+
+    def test_claim_pot_no_pot_maker(self):
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2016, 1, 1, 12, 0, 0),
+            num_of_cups=5,
+            weight=10
         )
         result = self.app.post('/claimPot', data=json.dumps({}))
         self.assertEqual(result.status_code, 200)

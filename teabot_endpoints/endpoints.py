@@ -207,12 +207,6 @@ def claimPot():
     except KeyError:
         return jsonify({'submitMessage': 'You need to select a pot maker'})
 
-    # Hazel claims false teapots, teabot don't like it.
-    if maker == "Hazel":
-        message = 'This has gone on oolong enough, Hazel.'
-        slack_communicator_wrapper.post_message_to_room(message)
-        return Response()
-
     maker = PotMaker.get_single_pot_maker(maker)
     maker.number_of_pots_made += 1
     maker.total_weight_made += latest_full_pot.weight

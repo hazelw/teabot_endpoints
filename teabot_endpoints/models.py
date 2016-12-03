@@ -1,5 +1,5 @@
 from peewee import Model, DateTimeField, OperationalError, CharField, \
-    IntegerField, ForeignKeyField
+    IntegerField, ForeignKeyField, BooleanField
 from playhouse.sqlite_ext import SqliteExtDatabase
 from datetime import datetime
 
@@ -20,6 +20,9 @@ class PotMaker(BaseModel):
     total_weight_made = IntegerField()
     number_of_cups_made = IntegerField()
     largest_single_pot = IntegerField()
+    inactive = BooleanField(default=False)
+    requested_teapot = BooleanField(default=False, null=True)
+    mac_address = CharField(null=True)
 
     @classmethod
     def get_all(cls):
@@ -44,6 +47,49 @@ class PotMaker(BaseModel):
         return PotMaker.select().where(
             PotMaker.name == name
         )[0]
+
+    @classmethod
+    def flip_requested_teapot(cls, mac_address):
+        """Flips the value of the requested teapot field for the user with
+        name
+        Args:
+            - mac_address (String) - Mac Address of the dash button for the
+            user
+        Returns:
+            - None
+        """
+        maker = cls.get_single_pot_maker_by_mac_address(mac_address)
+        maker.requested_teapot = not maker.requested_teapot
+        maker.save()
+        return maker
+
+    @classmethod
+    def get_single_pot_maker_by_mac_address(cls, mac_address):
+        """Returns the pot maker with the given mac_address dash button
+
+        Args:
+            - mac_address (String) - Mac Address of the dash button for the
+            user
+        Returns:
+            - PotMaker object
+        """
+        return PotMaker.select().where(
+            PotMaker.mac_address == mac_address
+        )[0]
+
+    @classmethod
+    def get_number_of_teapot_requests(cls):
+        """Returns the pot maker with the given mac_address dash button
+
+        Args:
+            - mac_address (String) - Mac Address of the dash button for the
+            user
+        Returns:
+            - PotMaker object
+        """
+        return PotMaker.select().where(
+            PotMaker.requested_teapot == True  # noqa
+        ).count()
 
 
 class State(BaseModel):

@@ -198,7 +198,7 @@ def claimPot():
 
     Args:
         - None
-    Returns
+    Returns:
         - {'submitMessage': 'Error / Success Message'}
     """
     latest_full_pot = State.get_latest_full_teapot()
@@ -219,6 +219,40 @@ def claimPot():
     latest_full_pot.claimed_by = maker
     latest_full_pot.save()
     return jsonify({'submitMessage': 'Pot claimed, thanks, %s' % maker.name})
+
+
+@app.route("/flipTeapotRequest", methods=['POST'])
+def flipTeapotRequest():
+    """Lets users reguster / deregister interest in a cup of tea via dash button
+
+    Args:
+        None
+
+    Returns:
+        {'requestedTeapot': teapot request status}
+    """
+
+    data = json.loads(request.data)
+
+    maker = PotMaker.flip_requested_teapot(data['dash_mac_address'])
+
+    return jsonify({'requestedTeapot': maker.requested_teapot})
+
+
+@app.route("/getNumberOfTeapotRequests", methods=['GET'])
+def getNumberOfTeapotRequests():
+    """Gets number of teapot requests
+
+    Args:
+        None
+
+    Returns:
+        {'teaRequests': number of tea requests}
+
+    """
+    tea_requests = PotMaker.get_number_of_teapot_requests()
+
+    return jsonify({'teaRequests': tea_requests})
 
 
 if __name__ == "__main__":

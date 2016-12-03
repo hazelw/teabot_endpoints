@@ -98,3 +98,76 @@ class TestModels(TestCase):
         )
         result = PotMaker.get_single_pot_maker('aaron')
         self.assertEqual(result.name, 'aaron')
+
+    def test_flip_requested_teapot_false_true(self):
+        PotMaker.create(
+            name='aaron',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123'
+        )
+        maker = PotMaker.get_single_pot_maker('aaron')
+        self.assertFalse(maker.requested_teapot)
+        PotMaker.flip_requested_teapot('123')
+        maker = PotMaker.get_single_pot_maker('aaron')
+        self.assertTrue(maker.requested_teapot)
+
+    def test_flip_requested_teapot_true_false(self):
+        PotMaker.create(
+            name='aaron',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123',
+            requested_teapot=True
+        )
+        maker = PotMaker.get_single_pot_maker('aaron')
+        self.assertTrue(maker.requested_teapot)
+        PotMaker.flip_requested_teapot('123')
+        maker = PotMaker.get_single_pot_maker('aaron')
+        self.assertFalse(maker.requested_teapot)
+
+    def test_get_single_pot_maker_by_mac_address(self):
+        PotMaker.create(
+            name='aaron',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123'
+        )
+        result = PotMaker.get_single_pot_maker_by_mac_address('123')
+        self.assertEqual(result.name, 'aaron')
+
+    def test_get_number_of_teapot_requests(self):
+        PotMaker.create(
+            name='aaron',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123'
+        )
+        PotMaker.create(
+            name='gareth',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123',
+            requested_teapot=True
+        )
+        PotMaker.create(
+            name='mario',
+            number_of_pots_made=1,
+            total_weight_made=12,
+            number_of_cups_made=5,
+            largest_single_pot=2,
+            mac_address='123',
+            requested_teapot=True
+        )
+        result = PotMaker.get_number_of_teapot_requests()
+        self.assertEqual(result, 2)

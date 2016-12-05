@@ -61,6 +61,7 @@ def teaReady():
     if last_full_pot.claimed_by:
         message += ", thanks to %s" % last_full_pot.claimed_by.name
     slack_communicator_wrapper.post_message_to_room(message)
+    PotMaker.reset_teapot_requests()
     return Response()
 
 

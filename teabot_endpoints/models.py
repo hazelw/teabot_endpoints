@@ -91,6 +91,14 @@ class PotMaker(BaseModel):
             PotMaker.requested_teapot == True  # noqa
         ).count()
 
+    @classmethod
+    def reset_teapot_requests(cls):
+        makers = PotMaker.get_all()
+
+        for maker in makers:
+            maker.requested_teapot = False
+            maker.save()
+
 
 class State(BaseModel):
     """Table that records the state of the teapot over time, commonly queried

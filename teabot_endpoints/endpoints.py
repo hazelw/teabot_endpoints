@@ -3,7 +3,7 @@ import rollbar
 import rollbar.contrib.flask
 import os
 from slack_communicator import SlackCommunicator
-from models import State, PotMaker
+from models import State, PotMaker, SlackMessages
 import json
 from datetime import datetime
 
@@ -58,10 +58,15 @@ def teaReady():
     message = "The Teapot :teapot: is ready with %s" % (
         _cup_puraliser(number_of_cups)
     )
+    reaction_message = \
+        "Want a cup of tea from the next teapot ? " + \
+        "React to this message to let everyone know!"
     if last_full_pot.claimed_by:
         message += ", thanks to %s" % last_full_pot.claimed_by.name
     slack_communicator_wrapper.post_message_to_room(message)
     PotMaker.reset_teapot_requests()
+    SlackMessages.clear_slack_message()
+    slack_communicator_wrapper.post_message_to_room(reaction_message, True)
     return Response()
 
 
@@ -251,7 +256,8 @@ def getNumberOfTeapotRequests():
         {'teaRequests': number of tea requests}
 
     """
-    tea_requests = PotMaker.get_number_of_teapot_requests()
+    tea_requests = PotMaker.get_number_of_teapot_requests() + \
+        slack_communicator_wrapper.get_message_reaction_count()
 
     return jsonify({'teaRequests': tea_requests})
 

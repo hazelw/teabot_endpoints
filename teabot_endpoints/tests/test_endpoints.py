@@ -1,6 +1,7 @@
 from unittest import TestCase
 from playhouse.test_utils import test_database
-from teabot_endpoints.models import State, PotMaker
+from teabot_endpoints.models import State, PotMaker, \
+    SlackMessages
 from teabot_endpoints.endpoints import app, _cup_puraliser, \
     _human_teapot_state, _are_or_is
 from peewee import SqliteDatabase
@@ -17,7 +18,7 @@ class TestEndpoints(TestCase):
         self.app = app.test_client()
 
     def run(self, result=None):
-        with test_database(test_db, [State, PotMaker]):
+        with test_database(test_db, [State, PotMaker, SlackMessages]):
             super(TestEndpoints, self).run(result)
 
     def test_im_a_teapot(self):
@@ -36,9 +37,16 @@ class TestEndpoints(TestCase):
         )
         result = self.app.post("/teaReady")
         self.assertEqual(result.status_code, 200)
-        mock_slack.post_message_to_room.assert_called_once_with(
+        mock_slack.post_message_to_room.assert_any_call(
             "The Teapot :teapot: is ready with 3 cups"
         )
+        reaction_message = \
+            "Want a cup of tea from the next teapot ? " + \
+            "React to this message to let everyone know!"
+        mock_slack.post_message_to_room.assert_any_call(
+            reaction_message, True)
+
+        self.assertEqual(mock_slack.post_message_to_room.call_count, 2)
 
     @patch(
         "teabot_endpoints.endpoints.slack_communicator_wrapper",
@@ -59,9 +67,16 @@ class TestEndpoints(TestCase):
         )
         result = self.app.post("/teaReady")
         self.assertEqual(result.status_code, 200)
-        mock_slack.post_message_to_room.assert_called_once_with(
+        mock_slack.post_message_to_room.assert_any_call(
             "The Teapot :teapot: is ready with 3 cups, thanks to bob"
         )
+        reaction_message = \
+            "Want a cup of tea from the next teapot ? " + \
+            "React to this message to let everyone know!"
+        mock_slack.post_message_to_room.assert_any_call(
+            reaction_message, True)
+
+        self.assertEqual(mock_slack.post_message_to_room.call_count, 2)
 
     def test_tea_webhook_no_data(self):
         result = self.app.post("/teabotWebhook")

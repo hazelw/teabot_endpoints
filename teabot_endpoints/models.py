@@ -152,6 +152,25 @@ class State(BaseModel):
             State.state == 'FULL_TEAPOT').order_by(-State.timestamp)[0]
 
 
+class SlackMessages(BaseModel):
+    timestamp = CharField()
+    channel = CharField()
+
+    @classmethod
+    def store_message_details(cls, timestamp, channel):
+        SlackMessages.create(timestamp=timestamp, channel=channel)
+
+    @classmethod
+    def get_reaction_message_details(cls):
+        return SlackMessages.select()[0]
+
+    @classmethod
+    def clear_slack_message(cls):
+        message = SlackMessages.select()
+        if message:
+            message[0].delete_instance()
+
+
 if __name__ == "__main__":
     try:
         State.create_table()
@@ -159,5 +178,9 @@ if __name__ == "__main__":
         print "The table already exists"
     try:
         PotMaker.create_table()
+    except OperationalError:
+        print "The table already exists"
+    try:
+        SlackMessages.create_table()
     except OperationalError:
         print "The table already exists"

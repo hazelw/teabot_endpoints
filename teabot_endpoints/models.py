@@ -162,9 +162,7 @@ class SlackMessages(BaseModel):
 
     @classmethod
     def get_reaction_message_details(cls):
-        message = SlackMessages.select()
-        if message:
-            return message[0]
+        return SlackMessages.select()[0]
 
     @classmethod
     def clear_slack_message(cls):

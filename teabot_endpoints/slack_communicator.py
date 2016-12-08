@@ -33,6 +33,7 @@ class SlackCommunicator(object):
             channel=message.channel, timestamp=message.timestamp)
 
         count = 0
-        for reaction in response.body['message']['reactions']:
-            count += reaction['count']
+        if response.body['message']['reactions']:
+            for reaction in response.body['message']['reactions']:
+                count += reaction['count']
         return count

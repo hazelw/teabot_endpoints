@@ -1,5 +1,5 @@
 from slacker import Slacker
-from settings import API_TOKEN, TEABOT_ROOM
+from settings import SLACK_API_TOKEN, TEABOT_ROOM
 from models import SlackMessages
 
 
@@ -7,7 +7,7 @@ class SlackCommunicator(object):
     """Handles communicating with Slack"""
 
     def __init__(self):
-        self.slack = Slacker(API_TOKEN)
+        self.slack = Slacker(SLACK_API_TOKEN)
 
     def post_message_to_room(self, message, reaction_message=False):
         """Posts a message to the Slack room specified in the settings.
@@ -15,7 +15,9 @@ class SlackCommunicator(object):
         Args:
             - Message (string) - Message to post to the slack room
         """
-        response = self.slack.chat.post_message(TEABOT_ROOM, message)
+        response = self.slack.chat.post_message(
+            TEABOT_ROOM, message, icon_emoji=":teapot:"
+        )
 
         if reaction_message:
             message_ts = response.body['ts']

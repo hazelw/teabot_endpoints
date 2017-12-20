@@ -3,7 +3,7 @@ from ubuntu:16.04
 RUN apt-get update
 RUN apt-get install -y python2.7 python-pip
 # Matches user on host
-RUN useradd -u 1000 teabot
+RUN useradd -u 20000 teabot
 
 COPY requirements.txt /srv/requirements.txt
 RUN pip install -r /srv/requirements.txt

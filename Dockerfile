@@ -12,4 +12,4 @@ COPY teabot_endpoints /srv/teabot_endpoints
 
 WORKDIR /srv/
 USER teabot
-CMD ["gunicorn", "--log-level", "debug", "-w", "4", "-b", "127.0.0.1:8000", "teabot_endpoints.endpoints:app"]
+CMD ["gunicorn", "--log-level", "debug", "-w", "4", "-b", "0.0.0.0:8000", "teabot_endpoints.endpoints:app"]

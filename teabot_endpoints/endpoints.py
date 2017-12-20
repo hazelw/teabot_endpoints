@@ -1,6 +1,7 @@
 from flask import Flask, Response, jsonify, request, got_request_exception
 import rollbar
 import rollbar.contrib.flask
+from settings import ROLLBAR_API_TOKEN
 import os
 from slack_communicator import SlackCommunicator
 from models import State, PotMaker, SlackMessages
@@ -17,13 +18,14 @@ def init_rollbar():
     """init rollbar module"""
     rollbar.init(
         # api key
-        '',
+        ROLLBAR_API_TOKEN,
         # environment name
         'teabot_webapp',
         # server root directory, makes tracebacks prettier
         root=os.path.dirname(os.path.realpath(__file__)),
         # flask already sets up logging
-        allow_logging_basic_config=False)
+        allow_logging_basic_config=False
+    )
 
     # send exceptions from `app` to rollbar, using flask's signal system.
     got_request_exception.connect(rollbar.contrib.flask.report_exception, app)

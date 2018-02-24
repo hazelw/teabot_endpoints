@@ -31,10 +31,14 @@ class SlackCommunicator(object):
             - count (int) - Total reaction count.
         """
         message = SlackMessages.get_reaction_message_details()
-        response = self.slack.reactions.get(
-            channel=message.channel, timestamp=message.timestamp)
+        if message:
+            response = self.slack.reactions.get(
+                channel=message.channel, timestamp=message.timestamp)
 
         count = 0
-        for reaction in response.body['message']['reactions']:
-            count += reaction['count']
+        if response:
+            if 'reactions' in response.body['message'].keys():
+                for reaction in response.body['message']['reactions']:
+                    count += reaction['count']
+
         return count

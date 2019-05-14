@@ -109,7 +109,7 @@ class State(BaseModel):
     num_of_cups = IntegerField()
     weight = IntegerField(null=True)
     temperature = IntegerField(null=True)
-    claimed_by = ForeignKeyField(PotMaker, null=True)
+    claimed_by = ForeignKeyField(PotMaker, null=True, index=True)
 
     @classmethod
     def get_newest_state(cls):

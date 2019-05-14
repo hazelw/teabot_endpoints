@@ -297,3 +297,125 @@ class TestEndpoints(TestCase):
         data = json.loads(result.data)
         self.assertEqual(
             data['submitMessage'], 'You need to select a pot maker')
+
+    def test_leaderboard_gets_all_results_by_default(self):
+        maker_1 = PotMaker.create(
+            name='bob',
+            number_of_pots_made=2,
+            total_weight_made=13,
+            number_of_cups_made=10,
+            largest_single_pot=10
+        )
+        maker_2 = PotMaker.create(
+            name='dave',
+            number_of_pots_made=1,
+            total_weight_made=10,
+            number_of_cups_made=4,
+            largest_single_pot=4
+        )
+
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2018, 1, 1, 12, 0, 0),
+            num_of_cups=6,
+            weight=10,
+            claimed_by=maker_1
+        )
+        State.create(
+            state="COLD_TEAPOT",
+            timestamp=datetime(2019, 1, 1, 12, 0, 0),
+            num_of_cups=4,
+            weight=3,
+            claimed_by=maker_1
+        )
+        State.create(
+            state='GOOD_TEAPOT',
+            timestamp=datetime(2018, 6, 1, 12, 0, 0),
+            num_of_cups=4,
+            weight=10,
+            claimed_by=maker_2
+        )
+
+        response = self.app.post('/leaderboard', data=json.dumps({}))
+
+        self.assertEqual(
+            json.loads(response.data),
+            {'results': [{
+                'name': 'bob',
+                'inactive': False,
+                'largestSinglePot': 10,
+                'numberOfCupsMade': 10,
+                'numberOfPotsMade': 2,
+                'totalWeightMade': 13
+            }, {
+                'name': 'dave',
+                'inactive': False,
+                'largestSinglePot': 10,
+                'numberOfCupsMade': 4,
+                'numberOfPotsMade': 1,
+                'totalWeightMade': 10
+            }]}
+        )
+
+    def test_leaderboard_gets_results_within_time_boundary(self):
+        maker_1 = PotMaker.create(
+            name='bob',
+            number_of_pots_made=2,
+            total_weight_made=13,
+            number_of_cups_made=10,
+            largest_single_pot=10
+        )
+        maker_2 = PotMaker.create(
+            name='dave',
+            number_of_pots_made=1,
+            total_weight_made=10,
+            number_of_cups_made=4,
+            largest_single_pot=4
+        )
+
+        State.create(
+            state="FULL_TEAPOT",
+            timestamp=datetime(2018, 1, 1, 12, 0, 0),
+            num_of_cups=6,
+            weight=10,
+            claimed_by=maker_1
+        )
+        State.create(
+            state="COLD_TEAPOT",
+            timestamp=datetime(2019, 1, 1, 12, 0, 0),
+            num_of_cups=4,
+            weight=3,
+            claimed_by=maker_1
+        )
+        State.create(
+            state='GOOD_TEAPOT',
+            timestamp=datetime(2018, 6, 1, 12, 0, 0),
+            num_of_cups=4,
+            weight=10,
+            claimed_by=maker_2
+        )
+
+        request = {
+            'from_timestamp': '2018-07-01T00:00:00.000000',
+            'to_timestamp': '2020-01-01T00:00:00.000000'
+        }
+        response = self.app.post('/leaderboard', data=json.dumps(request))
+
+        self.assertEqual(
+            json.loads(response.data),
+            {'results': [{
+                'name': 'bob',
+                'inactive': False,
+                'largestSinglePot': 3,
+                'numberOfCupsMade': 4,
+                'numberOfPotsMade': 1,
+                'totalWeightMade': 3
+            }, {
+                'name': 'dave',
+                'inactive': False,
+                'largestSinglePot': 0,
+                'numberOfCupsMade': 0,
+                'numberOfPotsMade': 0,
+                'totalWeightMade': 0
+            }]}
+        )

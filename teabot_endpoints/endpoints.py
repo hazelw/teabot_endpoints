@@ -200,6 +200,67 @@ def potMakers():
     return jsonify({"potMakers": results})
 
 
+@app.route("/leaderboard", methods=['POST'])
+def leaderboard():
+    """Returns teapots made by each PotMaker within the specified time period
+
+    Args:
+        - from_timestamp: string (format: YYYY-MM-DDThh:mm:ss, optional)
+        - to_timestamp: string (format: YYYY-MM-DDThh:mm:ss, optional)
+    Returns:
+        - [{
+            name: string,
+            numberOfPotsMade: int,
+            totalWeightMade: int,
+            largestSinglePot: int
+            numberOfCupsMade: int
+            inactive: bool
+        ]]
+    """
+    data = json.loads(request.data)
+    results = []
+
+    for pot_maker in PotMaker.get_all():
+        cups_made = 0
+        total_weight = 0
+        largest_pot_weight = 0
+
+        from_timestamp = data.get('from_timestamp')
+        to_timestamp = data.get('to_timestamp')
+
+        from_datetime = (
+            datetime.strptime(from_timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+            if from_timestamp else datetime.min
+        )
+        to_datetime = (
+            datetime.strptime(to_timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+            if to_timestamp else datetime.max
+        )
+
+        teapots = State.select().where(
+            State.claimed_by == pot_maker, State.timestamp >= from_datetime,
+            State.timestamp < to_datetime
+        )
+
+        pots_made = len(teapots)
+
+        for teapot in teapots:
+            total_weight = total_weight + teapot.weight
+            cups_made = cups_made + teapot.num_of_cups
+            largest_pot_weight = max(largest_pot_weight, teapot.weight)
+
+        results.append({
+            'name': pot_maker.name,
+            'numberOfPotsMade': pots_made,
+            'totalWeightMade': total_weight,
+            'largestSinglePot': largest_pot_weight,
+            'numberOfCupsMade': cups_made,
+            'inactive': pot_maker.inactive
+        })
+
+    return jsonify({'results': results})
+
+
 @app.route("/claimPot", methods=['POST'])
 def claimPot():
     """Lets a user claim to have made a teapot

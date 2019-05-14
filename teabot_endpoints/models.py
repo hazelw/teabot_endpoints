@@ -1,5 +1,5 @@
 from peewee import Model, DateTimeField, OperationalError, CharField, \
-    IntegerField, ForeignKeyField, BooleanField
+    IntegerField, ForeignKeyField, BooleanField, ForeignKey
 from playhouse.sqlite_ext import SqliteExtDatabase
 from datetime import datetime
 
@@ -16,9 +16,9 @@ class PotMaker(BaseModel):
     about their teapot making
     """
     name = CharField()
-    number_of_pots_made = IntegerField()
-    total_weight_made = IntegerField()
-    number_of_cups_made = IntegerField()
+    #number_of_pots_made = IntegerField()
+    #total_weight_made = IntegerField()
+    #number_of_cups_made = IntegerField()
     largest_single_pot = IntegerField()
     inactive = BooleanField(default=False)
     requested_teapot = BooleanField(default=False, null=True)
@@ -171,6 +171,14 @@ class SlackMessages(BaseModel):
         message = SlackMessages.select()
         if message:
             message[0].delete_instance()
+
+
+class Claim(BaseModel):
+    user = ForeignKey(PotMaker, backref='claims')
+    legacy_claim = BooleanField(default=False)
+    timestamp = DateTimeField(default=datetime.min, index=True)
+    weight = IntegerField()
+    number_of_cups = IntegerField()
 
 
 if __name__ == "__main__":
